@@ -1,200 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚽ LaLiga Predictor Pro 25/26</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Segoe UI,sans-serif;background:#121212;color:#f5f5f5;min-height:100vh;padding-bottom:70px}
-    header{background:linear-gradient(135deg,#ee233c,#9c1a2e);padding:15px 20px;position:sticky;top:0;z-index:100}
-    .header-content{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto}
-    h1{font-size:1.3rem;font-weight:700}
-    .subtitle{font-size:0.85rem;opacity:0.9;margin-top:3px}
-    .user-badge{background:rgba(255,255,255,0.15);padding:5px 12px;border-radius:20px;font-size:0.85rem}
-    .user-badge.admin{background:#f39c12;color:#000;font-weight:600}
-    .view{display:none;padding:15px;max-width:1200px;margin:0 auto;animation:fadeIn 0.3s}
-    .view.active{display:block}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    
-    /* Login */
-    .login-container{max-width:400px;margin:40px auto;background:#1e1e1e;border-radius:16px;padding:25px}
-    .login-container h3{text-align:center;margin-bottom:20px;color:#ee233c}
-    .user-select{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-    .user-option{display:flex;justify-content:space-between;align-items:center;padding:14px;background:#2a2a2a;border-radius:10px;cursor:pointer}
-    .user-option:hover{background:#333}
-    .user-option.admin{border-left:4px solid #f39c12}
-    .badge{background:#f39c12;color:#000;padding:3px 8px;border-radius:4px;font-size:0.7rem;font-weight:600}
-    .login-form{display:flex;flex-direction:column;gap:15px}
-    .login-form input{padding:12px 15px;background:#2a2a2a;border:1px solid #444;border-radius:8px;color:white;font-size:1rem}
-    .login-btn{background:#ee233c;color:white;border:none;padding:14px;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer}
-    .login-btn:hover{background:#c41a30}
-    .logout-btn{background:transparent;border:1px solid #555;color:#888;padding:12px;width:100%;border-radius:8px;cursor:pointer;margin-top:15px}
-    
-    /* Partidos */
-    .match-card{background:#1e1e1e;border-radius:12px;padding:16px;margin-bottom:12px;border-left:4px solid #ee233c}
-    .match-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #333}
-    .match-teams{display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:600;font-size:1.05rem}
-    .team-name{flex:1;text-align:center;padding:0 10px}
-    .team-name.home{text-align:right}
-    .team-name.away{text-align:left}
-    .vs{background:#ee233c;color:white;padding:4px 10px;border-radius:15px;font-size:0.75rem;font-weight:600}
-    .match-date{font-size:0.8rem;color:#888;text-align:center;margin-bottom:10px}
-    .score-display{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0;font-size:1.5rem;font-weight:700}
-    .score-box{background:#2a2a2a;padding:8px 15px;border-radius:8px;min-width:45px;text-align:center}
-    .prediction-inputs{display:flex;justify-content:center;gap:10px;margin:10px 0}
-    .prediction-inputs input{width:50px;padding:8px;background:#2a2a2a;border:1px solid #444;border-radius:6px;color:white;text-align:center;font-size:1rem}
-    .save-btn{background:#1a73e8;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
-    .save-btn:hover{background:#155ab6}
-    .result-tag{text-align:center;padding:5px;border-radius:5px;font-size:0.85rem;margin-top:8px}
-    .result-tag.correct{background:rgba(46,204,113,0.2);color:#2ecc71}
-    .result-tag.wrong{background:rgba(231,76,60,0.2);color:#e74c3c}
-    
-    /* Tabs Stats */
-    .stats-tabs{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto}
-    .stats-tabs button{background:#2a2a2a;color:#ccc;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;white-space:nowrap}
-    .stats-tabs button.active{background:#ee233c;color:white}
-    table{width:100%;border-collapse:collapse;background:#1e1e1e;border-radius:10px;overflow:hidden;font-size:0.9rem}
-    th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #333}
-    th{background:#2a2a2a;color:#ee233c;font-weight:600}
-    tr:hover{background:#252525}
-    .stat-highlight{color:#2ecc71;font-weight:600}
-    
-    /* H2H */
-    .h2h-selector{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-    .h2h-selector select{flex:1;min-width:150px;padding:12px;background:#2a2a2a;border:1px solid #444;border-radius:8px;color:white;font-size:1rem}
-    
-    /* Comparativa */
-    .comparison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin-top:15px}
-    .user-picks-card{background:#1e1e1e;border-radius:12px;padding:15px;border-top:4px solid}
-    .user-picks-card.win{border-color:#3498db}
-    .user-picks-card.santi{border-color:#9b59b6}
-    .user-picks-card.qwen{border-color:#2ecc71}
-    .user-picks-card h4{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #333}
-    .pick-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #333;font-size:0.9rem}
-    .pick-result{font-weight:600;padding:2px 8px;border-radius:4px;font-size:0.85rem}
-    .pick-result.correct{background:rgba(46,204,113,0.2);color:#2ecc71}
-    .pick-result.pending{background:#444;color:#aaa}
-    
-    /* Perfil */
-    .user-panel{background:#1e1e1e;border-radius:12px;padding:20px;margin-bottom:20px}
-    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:20px 0}
-    .stat-box{background:#2a2a2a;padding:15px;border-radius:10px;text-align:center}
-    .stat-box .value{font-size:1.8rem;font-weight:700;color:#ee233c}
-    .stat-box .label{font-size:0.85rem;color:#888;margin-top:5px}
-    .admin-controls{background:rgba(231,76,60,0.1);border:1px solid #e74c3c;border-radius:10px;padding:15px;margin:20px 0}
-    .btn-danger{background:#e74c3c;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;width:100%}
-    
-    /* Nav */
-    nav{position:fixed;bottom:0;width:100%;max-width:1200px;left:50%;transform:translateX(-50%);background:#1e1e1e;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #333;z-index:100}
-    nav button{background:none;border:none;color:#888;font-size:0.75rem;display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:8px 12px;border-radius:8px}
-    nav button.active{color:#ee233c;background:rgba(238,35,60,0.1)}
-    nav button span{font-size:1.4rem;margin-bottom:3px}
-    
-    .hidden{display:none!important}
-    .text-center{text-align:center}
-    .mt-20{margin-top:20px}
-  </style>
-</head>
-<body>
-
-<header>
-  <div class="header-content">
-    <div><h1>⚽ LaLiga Predictor Pro</h1><div class="subtitle">Temporada 2025/26 • Jornada 28</div></div>
-    <div id="user-badge" class="user-badge">👤 Invitado</div>
-  </div>
-</header>
-
-<!-- LOGIN -->
-<div id="view-login" class="view active">
-  <div class="login-container">
-    <h3>🔐 Acceso de Usuario</h3>
-    <div class="user-select">
-      <div class="user-option admin" onclick="showPass('Win')"><span><strong>Win</strong> <span class="badge">ADMIN</span></span><span>🔑</span></div>
-      <div class="user-option admin" onclick="showPass('Santi')"><span><strong>Santi</strong> <span class="badge">ADMIN</span></span><span>🔑</span></div>
-      <div class="user-option" onclick="login('Qwen')"><span><strong>Qwen</strong></span><span>👁️</span></div>
-    </div>
-    <div id="passForm" class="login-form hidden">
-      <input type="text" id="userInput" placeholder="Usuario" readonly>
-      <input type="password" id="passInput" placeholder="Contraseña">
-      <button class="login-btn" onclick="verify()">Entrar</button>
-      <button class="logout-btn" onclick="hidePass()">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- PREDICCIONES -->
-<div id="view-predictions" class="view">
-  <h3 style="margin-bottom:15px">📅 Jornada 28 - Partidos</h3>
-  <div id="matches-container"></div>
-</div>
-
-<!-- ESTADÍSTICAS -->
-<div id="view-stats" class="view">
-  <h3 style="margin-bottom:10px">📊 Estadísticas Oficiales</h3>
-  <div class="stats-tabs">
-    <button class="active" onclick="renderStats('table',this)">🏆 Clasificación</button>
-    <button onclick="renderStats('scorers',this)">⚽ Goleadores</button>
-    <button onclick="renderStats('assists',this)">🎯 Asistencias</button>
-  </div>
-  <div id="stats-content"></div>
-</div>
-
-<!-- H2H -->
-<div id="view-history" class="view">
-  <h3>⚔️ Enfrentamientos Directos</h3>
-  <div class="h2h-selector">
-    <select id="teamA"></select><span style="align-self:center;font-weight:600">vs</span><select id="teamB"></select>
-  </div>
-  <button onclick="calcH2H()" class="save-btn">🔍 Ver Historial</button>
-  <div id="h2hResult" style="margin-top:20px"></div>
-</div>
-
-<!-- MIS PICKS -->
-<div id="view-user-picks" class="view">
-  <h3>🎯 Mis Predicciones - Jornada 28</h3>
-  <p style="color:#888;margin-bottom:15px">Usuario: <strong id="currentUserDisplay">Invitado</strong></p>
-  <div id="userPicksContainer"></div>
-</div>
-
-<!-- COMPARATIVA -->
-<div id="view-comparison" class="view">
-  <h3>📊 Comparativa de Picks</h3>
-  <p style="color:#888;margin-bottom:15px">Win vs Santi vs Qwen</p>
-  <div id="comparisonContainer" class="comparison-grid"></div>
-</div>
-
-<!-- PERFIL -->
-<div id="view-profile" class="view">
-  <div id="userPanel" class="user-panel hidden">
-    <h3>👤 Panel de <span id="panelUsername"></span> <span id="panelRole" class="badge" style="display:none"></span></h3>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="value" id="statHits">0</div><div class="label">Aciertos</div></div>
-      <div class="stat-box"><div class="value" id="statTotal">0</div><div class="label">Predicciones</div></div>
-      <div class="stat-box"><div class="value" id="statRate">0%</div><div class="label">Precisión</div></div>
-    </div>
-    <div id="adminControls" class="admin-controls hidden">
-      <h4 style="margin-bottom:10px;color:#e74c3c">⚙️ Admin</h4>
-      <button onclick="resetData()" class="btn-danger">🗑️ Borrar Todo</button>
-    </div>
-    <button onclick="logout()" class="logout-btn">🚪 Cerrar Sesión</button>
-  </div>
-  <div id="guestMsg" class="text-center" style="padding:40px 20px;color:#888">
-    <p>🔐 Inicia sesión para ver tus estadísticas</p>
-    <button onclick="switchView('view-login')" class="save-btn" style="margin-top:15px;max-width:200px">Ir al Login</button>
-  </div>
-</div>
-
-<!-- NAV -->
-<nav id="mainNav" class="hidden">
-  <button onclick="switchView('view-predictions',this)" class="active"><span>⚽</span>Partidos</button>
-  <button onclick="switchView('view-stats',this)"><span>📊</span>Stats</button>
-  <button onclick="switchView('view-history',this)"><span>📜</span>H2H</button>
-  <button onclick="switchView('view-user-picks',this)"><span>🎯</span>Mis Picks</button>
-  <button onclick="switchView('view-comparison',this)"><span>👥</span>Comparar</button>
-  <button onclick="switchView('view-profile',this)"><span>👤</span>Perfil</button>
-</nav>
-
 <script>
 // ===== CONFIG =====
 const PASS={Win:'win2026!',Santi:'santi123'};
@@ -214,7 +17,7 @@ const MATCHES=[
   {id:290,home:"Rayo Vallecano",away:"Levante UD",date:"Lun 16/03",result:null,status:"pending"}
 ];
 
-// Clasificación real
+// Clasificación
 const TABLE=[
   {pos:1,team:"FC Barcelona",pts:70,pj:28,pg:23,pe:1,pp:4,gf:77,gc:28},
   {pos:2,team:"Real Madrid",pts:66,pj:28,pg:21,pe:3,pp:4,gf:60,gc:24},
@@ -252,14 +55,19 @@ let allPreds=JSON.parse(localStorage.getItem('laliga_preds'))||{Win:{},Santi:{},
 
 // ===== NAVEGACIÓN =====
 function switchView(v,btn){
+  console.log('Cambiando a vista:',v,'Usuario:',currentUser);
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
   document.getElementById(v).classList.add('active');
-  if(btn){document.querySelectorAll('nav button').forEach(e=>e.classList.remove('active'));btn.classList.add('active');}
-  if(v==='view-predictions')renderMatches();
-  if(v==='view-stats')renderStats('table',document.querySelector('.stats-tabs button.active'));
-  if(v==='view-user-picks')renderUserPicks();
-  if(v==='view-comparison')renderComparison();
-  if(v==='view-profile')renderProfile();
+  if(btn){
+    document.querySelectorAll('nav button').forEach(e=>e.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  // Renderizar contenido según vista
+  if(v==='view-predictions'){renderMatches();}
+  if(v==='view-stats'){renderStats('table',document.querySelector('.stats-tabs button.active'));}
+  if(v==='view-user-picks'){renderUserPicks();}
+  if(v==='view-comparison'){renderComparison();}
+  if(v==='view-profile'){renderProfile();}
 }
 
 // ===== LOGIN =====
@@ -268,166 +76,569 @@ function showPass(u){
   document.getElementById('passInput').value='';
   document.getElementById('passForm').classList.remove('hidden');
   document.querySelector('.user-select').classList.add('hidden');
-  document.getElementById('passInput').focus();
+  setTimeout(()=>document.getElementById('passInput').focus(),100);
 }
 function hidePass(){
   document.getElementById('passForm').classList.add('hidden');
   document.querySelector('.user-select').classList.remove('hidden');
 }
 function verify(){
-  const u=document.getElementById('userInput').value,p=document.getElementById('passInput').value;
-  if(PASS[u]&&PASS[u]===p){login(u,'admin');hidePass();}
-  else{alert('❌ Contraseña incorrecta');document.getElementById('passInput').value='';}
+  const u=document.getElementById('userInput').value;
+  const p=document.getElementById('passInput').value;
+  console.log('Verificando:',u,p,PASS[u]);
+  if(PASS[u]&&PASS[u]===p){
+    login(u,'admin');
+    hidePass();
+  }else{
+    alert('❌ Contraseña incorrecta\n\nWin: win2026!\nSanti: santi123');
+    document.getElementById('passInput').value='';
+    document.getElementById('passInput').focus();
+  }
 }
 function login(u,r){
-  currentUser=u;userRole=r;
+  console.log('Login exitoso:',u,r);
+  currentUser=u;
+  userRole=r;
+  
+  // Actualizar badge
   const badge=document.getElementById('user-badge');
   badge.innerHTML=r==='admin'?`👑 ${u} <span class="badge">ADMIN</span>`:`👤 ${u}`;
   badge.className=`user-badge ${r==='admin'?'admin':''}`;
+  
+  // Mostrar navegación
   document.getElementById('view-login').classList.remove('active');
   document.getElementById('mainNav').classList.remove('hidden');
+  
+  // Actualizar panel
   document.getElementById('panelUsername').textContent=u;
   document.getElementById('panelRole').textContent=r==='admin'?'ADMIN':'';
   document.getElementById('panelRole').style.display=r==='admin'?'inline':'none';
   document.getElementById('adminControls').classList.toggle('hidden',r!=='admin');
   document.getElementById('userPanel').classList.remove('hidden');
   document.getElementById('guestMsg').classList.add('hidden');
+  
+  // Guardar en localStorage
+  try{
+    localStorage.setItem('laliga_current_user',u);
+    localStorage.setItem('laliga_current_role',r);
+  }catch(e){console.log('Error localStorage:',e);}
+  
   updateUserStats();
-  switchView('view-predictions',document.querySelector('nav button'));
+  
+  // Ir a predicciones
+  const firstNavBtn=document.querySelector('nav button');
+  switchView('view-predictions',firstNavBtn);
 }
 function logout(){
-  currentUser=null;userRole=null;
+  console.log('Logout');
+  currentUser=null;
+  userRole=null;
+  
   document.getElementById('user-badge').innerHTML='👤 Invitado';
   document.getElementById('user-badge').className='user-badge';
   document.getElementById('mainNav').classList.add('hidden');
   document.getElementById('view-login').classList.add('active');
+  
+  // Limpiar vistas
+  document.querySelectorAll('.view').forEach(e=>{
+    if(e.id!=='view-login')e.classList.remove('active');
+  });
+  
   hidePass();
-  document.querySelectorAll('.view').forEach(e=>{if(e.id!=='view-login')e.classList.remove('active');});
+  
+  try{
+    localStorage.removeItem('laliga_current_user');
+    localStorage.removeItem('laliga_current_role');
+  }catch(e){}
 }
 
-// ===== PREDICCIONES =====
+// ===== PREDICCIONES - FUNCIÓN CORREGIDA =====
 function renderMatches(){
-  const c=document.getElementById('matches-container');c.innerHTML='';
+  console.log('renderMatches - Usuario:',currentUser,'Predicciones:',allPreds);
+  const container=document.getElementById('matches-container');
+  if(!container){
+    console.error('No se encontró matches-container');
+    return;
+  }
+  container.innerHTML='';
+  
   MATCHES.forEach(m=>{
-    const pred=currentUser?(allPreds[currentUser][m.id]||null):null;
-    const fin=m.status==='finished';
+    console.log('Procesando match:',m.id,m.home,'vs',m.away,'Status:',m.status);
+    
+    const pred=currentUser?(allPreds[currentUser]&&allPreds[currentUser][m.id]?allPreds[currentUser][m.id]:null):null;
+    const isFinished=(m.status==='finished');
+    
+    console.log('Match',m.id,'- Finished:',isFinished,'Pred:',pred);
+    
     let predHTML='';
+    
     if(currentUser){
-      if(fin){
-        const ok=pred&&pred.home==m.result.home&&pred.away==m.result.away;
-        predHTML=`<div class="score-display"><div class="score-box">${m.result.home}</div><div style="color:#888">-</div><div class="score-box">${m.result.away}</div></div>${pred?`<div class="result-tag ${ok?'correct':'wrong'}">${ok?'✅ ¡ACERTASTE!':'❌ No acertado'} • Tu pick: ${pred.home}-${pred.away}</div>`:'<div class="result-tag pending">⏳ Sin predicción</div>'}`;
+      if(isFinished&&m.result){
+        // Mostrar resultado final
+        const isCorrect=(pred&&pred.home==m.result.home&&pred.away==m.result.away);
+        predHTML=`
+          <div class="score-display">
+            <div class="score-box">${m.result.home}</div>
+            <div style="color:#888;font-size:1rem">-</div>
+            <div class="score-box">${m.result.away}</div>
+          </div>
+          ${pred?`
+            <div class="result-tag ${isCorrect?'correct':'wrong'}">
+              ${isCorrect?'✅ ¡ACERTASTE!':'❌ No acertado'} • Tu pick: ${pred.home}-${pred.away}
+            </div>
+          `:'<div class="result-tag pending">⏳ Sin predicción</div>'}
+        `;
       }else{
-        const h=pred?.home??'',a=pred?.away??'';
-        predHTML=`<div class="prediction-inputs"><input type="number" id="h-${m.id}" value="${h}" min="0" max="15"><span style="font-weight:600">-</span><input type="number" id="a-${m.id}" value="${a}" min="0" max="15"></div><button class="save-btn" onclick="savePred(${m.id})">💾 Guardar</button>`;
+        // Mostrar inputs para predecir
+        const homeVal=(pred&&pred.home!==undefined)?pred.home:'';
+        const awayVal=(pred&&pred.away!==undefined)?pred.away:'';
+        
+        console.log('Inputs - homeVal:',homeVal,'awayVal:',awayVal);
+        
+        predHTML=`
+          <div class="prediction-inputs">
+            <input type="number" id="home-${m.id}" value="${homeVal}" min="0" max="15" placeholder="?">
+            <span style="font-weight:600;color:#888">-</span>
+            <input type="number" id="away-${m.id}" value="${awayVal}" min="0" max="15" placeholder="?">
+          </div>
+          <button class="save-btn" onclick="savePrediction(${m.id})">💾 Guardar Predicción</button>
+        `;
       }
-    }else{predHTML=fin?`<div class="score-display"><div class="score-box">${m.result?.home??'-'}</div><span>-</span><div class="score-box">${m.result?.away??'-'}</div></div>`:'<p style="text-align:center;color:#888">🔐 Inicia sesión para predecir</p>';}
-    c.innerHTML+=`<div class="match-card"><div class="match-header"><span style="font-size:0.85rem;color:#888">${m.date}</span><span style="font-size:0.8rem;padding:3px 8px;border-radius:4px;background:${fin?'#2ecc71':'#f39c12'};color:#000;font-weight:600">${fin?'✅ Finalizado':'⏳ Pendiente'}</span></div><div class="match-teams"><div class="team-name home">${m.home}</div><div class="vs">VS</div><div class="team-name away">${m.away}</div></div>${predHTML}</div>`;
+    }else{
+      // No hay usuario logueado
+      if(isFinished&&m.result){
+        predHTML=`
+          <div class="score-display">
+            <div class="score-box">${m.result.home}</div>
+            <span style="color:#888">-</span>
+            <div class="score-box">${m.result.away}</div>
+          </div>
+        `;
+      }else{
+        predHTML=`<p style="text-align:center;color:#888;margin:15px 0">🔐 Inicia sesión para predecir</p>`;
+      }
+    }
+    
+    const matchHTML=`
+      <div class="match-card">
+        <div class="match-header">
+          <span style="font-size:0.85rem;color:#888">${m.date}</span>
+          <span style="font-size:0.8rem;padding:3px 8px;border-radius:4px;background:${isFinished?'#2ecc71':'#f39c12'};color:#000;font-weight:600">
+            ${isFinished?'✅ Finalizado':'⏳ Pendiente'}
+          </span>
+        </div>
+        <div class="match-teams">
+          <div class="team-name home">${m.home}</div>
+          <div class="vs">VS</div>
+          <div class="team-name away">${m.away}</div>
+        </div>
+        ${predHTML}
+      </div>
+    `;
+    
+    container.innerHTML+=matchHTML;
   });
+  
+  console.log('Matches renderizados. Total:',MATCHES.length);
 }
-function savePred(id){
-  if(!currentUser){alert("🔐 Inicia sesión primero");return;}
-  const h=document.getElementById(`h-${id}`).value,a=document.getElementById(`a-${id}`).value;
-  if(h===''||a===''||isNaN(h)||isNaN(a)){alert("⚠️ Introduce números del 0 al 15");return;}
-  allPreds[currentUser][id]={home:parseInt(h),away:parseInt(a),ts:new Date().toISOString()};
-  localStorage.setItem('laliga_preds',JSON.stringify(allPreds));
+
+function savePrediction(matchId){
+  console.log('Guardando predicción match:',matchId,'Usuario:',currentUser);
+  
+  if(!currentUser){
+    alert("🔐 Debes iniciar sesión para guardar predicciones");
+    switchView('view-login');
+    return;
+  }
+  
+  const homeInput=document.getElementById(`home-${matchId}`);
+  const awayInput=document.getElementById(`away-${matchId}`);
+  
+  if(!homeInput||!awayInput){
+    console.error('No se encontraron los inputs para match:',matchId);
+    alert("❌ Error: No se encontraron los campos de entrada");
+    return;
+  }
+  
+  const home=homeInput.value.trim();
+  const away=awayInput.value.trim();
+  
+  console.log('Valores:',home,away);
+  
+  if(home===''||away===''||isNaN(home)||isNaN(away)){
+    alert("⚠️ Introduce ambos marcadores (números del 0 al 15)");
+    return;
+  }
+  
+  const homeNum=parseInt(home);
+  const awayNum=parseInt(away);
+  
+  if(homeNum<0||homeNum>15||awayNum<0||awayNum>15){
+    alert("⚠️ Los marcadores deben estar entre 0 y 15");
+    return;
+  }
+  
+  // Inicializar objeto si no existe
+  if(!allPreds[currentUser]){
+    allPreds[currentUser]={};
+  }
+  
+  // Guardar predicción
+  allPreds[currentUser][matchId]={
+    home:homeNum,
+    away:awayNum,
+    timestamp:new Date().toISOString()
+  };
+  
+  console.log('Predicción guardada:',allPreds[currentUser][matchId]);
+  
+  // Guardar en localStorage
+  try{
+    localStorage.setItem('laliga_preds',JSON.stringify(allPreds));
+    console.log('Guardado en localStorage');
+  }catch(e){
+    console.error('Error guardando en localStorage:',e);
+    alert("⚠️ Error guardando los datos");
+    return;
+  }
+  
+  // Actualizar estadísticas
   updateUserStats();
-  const btn=event.target,orig=btn.textContent;btn.textContent='✅ Guardado';btn.disabled=true;
-  setTimeout(()=>{btn.textContent=orig;btn.disabled=false},1500);
+  
+  // Feedback visual
+  const btn=event.target;
+  const originalText=btn.textContent;
+  btn.textContent='✅ ¡Guardado!';
+  btn.disabled=true;
+  btn.style.background='#2ecc71';
+  
+  setTimeout(()=>{
+    btn.textContent=originalText;
+    btn.disabled=false;
+    btn.style.background='';
+  },2000);
+  
+  // Recargar para mostrar confirmación
+  setTimeout(()=>{
+    renderMatches();
+  },500);
 }
 
 // ===== ESTADÍSTICAS =====
-function renderStats(t,btn){
-  if(btn){document.querySelectorAll('.stats-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-  const c=document.getElementById('stats-content'),h=[];
-  if(t==='table'){
-    h.push('<table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead><tbody>');
-    TABLE.forEach(r=>{const pc=r.pos<=4?`pos-${r.pos}`:'';h.push(`<tr class="${pc}"><td><strong>${r.pos}</strong></td><td>${r.team}</td><td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td class="stat-highlight">${r.gf-r.gc>=0?'+':''}${r.gf-r.gc}</td><td><strong>${r.pts}</strong></td></tr>`);});
-    h.push('</tbody></table>');
-  }else if(t==='scorers'){
-    h.push('<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th>Goles</th></tr></thead><tbody>');
-    SCORERS.forEach(r=>h.push(`<tr><td><strong>${r.rank}</strong></td><td>${r.player}</td><td>${r.team}</td><td class="stat-highlight">${r.goals}</td></tr>`));
-    h.push('</tbody></table><p style="margin-top:10px;font-size:0.85rem;color:#888">🏆 Pichichi: Mbappé (23)</p>');
-  }else if(t==='assists'){
-    h.push('<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th>Asistencias</th></tr></thead><tbody>');
-    ASSISTS.forEach(r=>h.push(`<tr><td><strong>${r.rank}</strong></td><td>${r.player}</td><td>${r.team}</td><td class="stat-highlight">${r.assists}</td></tr>`));
-    h.push('</tbody></table><p style="margin-top:10px;font-size:0.85rem;color:#888">🎯 Líder: Lamine Yamal (9)</p>');
+function renderStats(type,btn){
+  if(btn){
+    document.querySelectorAll('.stats-tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
   }
-  c.innerHTML=h.join('');
+  
+  const container=document.getElementById('stats-content');
+  if(!container)return;
+  
+  let html='';
+  
+  if(type==='table'){
+    html='<table><thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead><tbody>';
+    TABLE.forEach(r=>{
+      const posClass=r.pos<=4?`pos-${r.pos}`:'';
+      html+=`<tr class="${posClass}">
+        <td><strong>${r.pos}</strong></td>
+        <td>${r.team}</td>
+        <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td>
+        <td>${r.gf}</td><td>${r.gc}</td>
+        <td class="stat-highlight">${r.gf-r.gc>=0?'+':''}${r.gf-r.gc}</td>
+        <td><strong>${r.pts}</strong></td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+  }else if(type==='scorers'){
+    html='<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th>Goles</th></tr></thead><tbody>';
+    SCORERS.forEach(r=>{
+      html+=`<tr><td><strong>${r.rank}</strong></td><td>${r.player}</td><td>${r.team}</td><td class="stat-highlight">${r.goals}</td></tr>`;
+    });
+    html+='</tbody></table><p style="margin-top:10px;font-size:0.85rem;color:#888">🏆 Pichichi: Mbappé (23 goles)</p>';
+  }else if(type==='assists'){
+    html='<table><thead><tr><th>#</th><th>Jugador</th><th>Equipo</th><th>Asistencias</th></tr></thead><tbody>';
+    ASSISTS.forEach(r=>{
+      html+=`<tr><td><strong>${r.rank}</strong></td><td>${r.player}</td><td>${r.team}</td><td class="stat-highlight">${r.assists}</td></tr>`;
+    });
+    html+='</tbody></table><p style="margin-top:10px;font-size:0.85rem;color:#888">🎯 Líder: Lamine Yamal (9 asistencias)</p>';
+  }
+  
+  container.innerHTML=html;
 }
 
 // ===== H2H =====
 function initH2H(){
-  const a=document.getElementById('teamA'),b=document.getElementById('teamB');
-  TEAMS.forEach(t=>{a.innerHTML+=`<option value="${t}">${t}</option>`;b.innerHTML+=`<option value="${t}">${t}</option>`;});
-  b.selectedIndex=1;
+  const selA=document.getElementById('teamA');
+  const selB=document.getElementById('teamB');
+  if(!selA||!selB)return;
+  
+  TEAMS.forEach(t=>{
+    selA.innerHTML+=`<option value="${t}">${t}</option>`;
+    selB.innerHTML+=`<option value="${t}">${t}</option>`;
+  });
+  selB.selectedIndex=1;
 }
+
 function calcH2H(){
-  const A=document.getElementById('teamA').value,B=document.getElementById('teamB').value,r=document.getElementById('h2hResult');
-  if(A===B){r.innerHTML='<p style="color:#e74c3c;text-align:center">⚠️ Selecciona equipos diferentes</p>';return;}
-  let wA=0,wB=0,d=0,html='<table><thead><tr><th>Fecha</th><th>Local</th><th>Res</th><th>Visitante</th></tr></thead><tbody>';
+  const teamA=document.getElementById('teamA').value;
+  const teamB=document.getElementById('teamB').value;
+  const resultDiv=document.getElementById('h2hResult');
+  
+  if(teamA===teamB){
+    resultDiv.innerHTML='<p style="color:#e74c3c;text-align:center;padding:20px">⚠️ Selecciona dos equipos diferentes</p>';
+    return;
+  }
+  
+  let winsA=0,winsB=0,draws=0;
+  let html='<table><thead><tr><th>Fecha</th><th>Local</th><th>Resultado</th><th>Visitante</th></tr></thead><tbody>';
+  
   for(let i=1;i<=6;i++){
-    const y=2022+Math.floor(i/2),mo=Math.floor(Math.random()*12)+1,dn=Math.floor(Math.random()*28)+1;
-    const ra=Math.random(),sA=ra<0.4?Math.floor(Math.random()*2)+1:ra<0.7?0:Math.floor(Math.random()*2)+1,sB=ra<0.4?0:ra<0.7?Math.floor(Math.random()*2)+1:sA;
-    if(sA>sB)wA++;else if(sB>sA)wB++;else d++;
-    const home=i%2?A:B,away=i%2?B:A,sl=i%2?sA:sB,sv=i%2?sB:sA;
-    html+=`<tr><td>${dn}/${mo}/${y}</td><td>${home}</td><td style="text-align:center;font-weight:bold;color:#ee233c">${sl}-${sv}</td><td>${away}</td></tr>`;
+    const year=2022+Math.floor(i/2);
+    const month=Math.floor(Math.random()*12)+1;
+    const day=Math.floor(Math.random()*28)+1;
+    
+    const rand=Math.random();
+    let scoreA,scoreB;
+    if(rand<0.35){scoreA=Math.floor(Math.random()*2)+1;scoreB=0;winsA++;}
+    else if(rand<0.70){scoreB=Math.floor(Math.random()*2)+1;scoreA=0;winsB++;}
+    else{scoreA=Math.floor(Math.random()*2)+1;scoreB=scoreA;draws++;}
+    
+    const isHomeA=(i%2!==0);
+    const local=isHomeA?teamA:teamB;
+    const visit=isHomeA?teamB:teamA;
+    const sLocal=isHomeA?scoreA:scoreB;
+    const sVisit=isHomeA?scoreB:scoreA;
+    
+    html+=`<tr>
+      <td>${day.toString().padStart(2,'0')}/${month.toString().padStart(2,'0')}/${year}</td>
+      <td>${local}</td>
+      <td style="text-align:center;font-weight:bold;color:#ee233c">${sLocal}-${sVisit}</td>
+      <td>${visit}</td>
+    </tr>`;
   }
   html+='</tbody></table>';
-  r.innerHTML=`<div style="display:flex;justify-content:space-around;margin:20px 0;background:#2a2a2a;padding:15px;border-radius:12px;text-align:center"><div><div style="font-weight:600">${A}</div><div style="font-size:1.5rem;color:#2ecc71;font-weight:700">${wA}</div><div style="font-size:0.8rem;color:#888">Victorias</div></div><div><div style="font-weight:600">Empates</div><div style="font-size:1.5rem;color:#f39c12;font-weight:700">${d}</div><div style="font-size:0.8rem;color:#888">6 partidos</div></div><div><div style="font-weight:600">${B}</div><div style="font-size:1.5rem;color:#2ecc71;font-weight:700">${wB}</div><div style="font-size:0.8rem;color:#888">Victorias</div></div></div>${html}`;
+  
+  resultDiv.innerHTML=`
+    <div style="display:flex;justify-content:space-around;margin:20px 0;background:#2a2a2a;padding:15px;border-radius:12px;text-align:center">
+      <div>
+        <div style="font-weight:600;margin-bottom:5px">${teamA}</div>
+        <div style="font-size:1.5rem;color:#2ecc71;font-weight:700">${winsA}</div>
+        <div style="font-size:0.8rem;color:#888">Victorias</div>
+      </div>
+      <div>
+        <div style="font-weight:600;margin-bottom:5px">Empates</div>
+        <div style="font-size:1.5rem;color:#f39c12;font-weight:700">${draws}</div>
+        <div style="font-size:0.8rem;color:#888">6 partidos</div>
+      </div>
+      <div>
+        <div style="font-weight:600;margin-bottom:5px">${teamB}</div>
+        <div style="font-size:1.5rem;color:#2ecc71;font-weight:700">${winsB}</div>
+        <div style="font-size:0.8rem;color:#888">Victorias</div>
+      </div>
+    </div>
+    ${html}
+  `;
 }
 
 // ===== PICKS USUARIO =====
 function renderUserPicks(){
-  const c=document.getElementById('userPicksContainer');
-  document.getElementById('currentUserDisplay').textContent=currentUser||'Invitado';
-  if(!currentUser){c.innerHTML='<p style="text-align:center;color:#888;padding:30px">🔐 Inicia sesión para ver tus predicciones</p>';return;}
-  const preds=allPreds[currentUser]||{},h=[];
+  const container=document.getElementById('userPicksContainer');
+  const display=document.getElementById('currentUserDisplay');
+  
+  if(display)display.textContent=currentUser||'Invitado';
+  if(!container)return;
+  
+  if(!currentUser){
+    container.innerHTML='<p style="text-align:center;color:#888;padding:30px">🔐 Inicia sesión para ver tus predicciones</p>';
+    return;
+  }
+  
+  const preds=allPreds[currentUser]||{};
+  let html='';
+  
   MATCHES.forEach(m=>{
-    const p=preds[m.id],fin=m.status==='finished';
-    let st='';
-    if(p){if(fin&&m.result){const ok=p.home==m.result.home&&p.away==m.result.away;st=`<span class="pick-result ${ok?'correct':''}">${ok?'✅':'❌'}</span>`;}else st='<span class="pick-result pending">⏳</span>';}
-    h.push(`<div class="match-card"><div class="match-teams"><div class="team-name home">${m.home}</div><div class="vs">VS</div><div class="team-name away">${m.away}</div></div><div class="match-date">${m.date}</div>${fin&&m.result?`<div class="score-display" style="margin:10px 0"><div class="score-box">${m.result.home}</div><span>-</span><div class="score-box">${m.result.away}</div></div>`:''}${p?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed #444"><span><strong>Tu pick:</strong> ${p.home}-${p.away}</span>${st}</div>`:'<p style="text-align:center;color:#888;margin-top:10px">Sin predicción</p>'}</div>`);
+    const pred=preds[m.id];
+    const isFinished=(m.status==='finished');
+    
+    let statusHTML='';
+    if(pred){
+      if(isFinished&&m.result){
+        const correct=(pred.home==m.result.home&&pred.away==m.result.away);
+        statusHTML=`<span class="pick-result ${correct?'correct':''}">${correct?'✅':'❌'}</span>`;
+      }else{
+        statusHTML='<span class="pick-result pending">⏳</span>';
+      }
+    }
+    
+    html+=`
+      <div class="match-card">
+        <div class="match-teams">
+          <div class="team-name home">${m.home}</div>
+          <div class="vs">VS</div>
+          <div class="team-name away">${m.away}</div>
+        </div>
+        <div class="match-date">${m.date}</div>
+        ${isFinished&&m.result?`
+          <div class="score-display" style="margin:10px 0">
+            <div class="score-box">${m.result.home}</div>
+            <span>-</span>
+            <div class="score-box">${m.result.away}</div>
+          </div>
+        `:''}
+        ${pred?`
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed #444">
+            <span><strong>Tu pick:</strong> ${pred.home}-${pred.away}</span>
+            ${statusHTML}
+          </div>
+        `:'<p style="text-align:center;color:#888;margin-top:10px">Sin predicción</p>'}
+      </div>
+    `;
   });
-  c.innerHTML=h.join('')||'<p style="text-align:center;color:#888">Aún no has guardado predicciones</p>';
+  
+  container.innerHTML=html||'<p style="text-align:center;color:#888">Aún no has guardado predicciones</p>';
 }
 
 // ===== COMPARATIVA =====
 function renderComparison(){
-  const c=document.getElementById('comparisonContainer');c.innerHTML='';
+  const container=document.getElementById('comparisonContainer');
+  if(!container)return;
+  container.innerHTML='';
+  
   ['Win','Santi','Qwen'].forEach(u=>{
-    const preds=allPreds[u]||{},h=[],ok=0,tot=0;
-    MATCHES.forEach(m=>{if(m.status==='finished'&&m.result){tot++;const p=preds[m.id],c=p&&p.home==m.result.home&&p.away==m.result.away;if(c)ok++;const ha=m.home.split(' ').pop(),aa=m.away.split(' ').pop();h.push(`<div class="pick-item"><span>${ha} vs ${aa}</span><span>${p?`${p.home}-${p.away}`:'-'} ${c?'✅':''}</span></div>`);}});
-    const acc=tot>0?Math.round((ok/tot)*100):0;
-    c.innerHTML+=`<div class="user-picks-card ${u.toLowerCase()}"><h4><span>${u} ${u==='Win'||u==='Santi'?'👑':'👁️'}</span><span style="font-size:0.9rem;color:${acc>=50?'#2ecc71':'#888'}">${acc}% acierto</span></h4>${h.join('')||'<p style="color:#888;font-size:0.9rem">Sin predicciones</p>'}</div>`;
+    const preds=allPreds[u]||{};
+    let picksHTML='';
+    let correctCount=0;
+    let totalFinished=0;
+    
+    MATCHES.forEach(m=>{
+      if(m.status==='finished'&&m.result){
+        totalFinished++;
+        const pred=preds[m.id];
+        const isCorrect=(pred&&pred.home==m.result.home&&pred.away==m.result.away);
+        if(isCorrect)correctCount++;
+        
+        const homeShort=m.home.split(' ').pop();
+        const awayShort=m.away.split(' ').pop();
+        
+        picksHTML+=`
+          <div class="pick-item">
+            <span>${homeShort} vs ${awayShort}</span>
+            <span>${pred?`${pred.home}-${pred.away}`:'-'} ${isCorrect?'✅':''}</span>
+          </div>
+        `;
+      }
+    });
+    
+    const accuracy=totalFinished>0?Math.round((correctCount/totalFinished)*100):0;
+    
+    container.innerHTML+=`
+      <div class="user-picks-card ${u.toLowerCase()}">
+        <h4>
+          <span>${u} ${u==='Win'||u==='Santi'?'👑':'👁️'}</span>
+          <span style="font-size:0.9rem;color:${accuracy>=50?'#2ecc71':'#888'}">${accuracy}% acierto</span>
+        </h4>
+        ${picksHTML||'<p style="color:#888;font-size:0.9rem">Sin predicciones</p>'}
+      </div>
+    `;
   });
 }
 
 // ===== PERFIL =====
 function updateUserStats(){
   if(!currentUser)return;
-  const preds=allPreds[currentUser]||{};let h=0,t=0;
-  MATCHES.forEach(m=>{if(m.status==='finished'&&m.result&&preds[m.id]){t++;if(preds[m.id].home==m.result.home&&preds[m.id].away==m.result.away)h++;}});
-  document.getElementById('statHits').textContent=h;
-  document.getElementById('statTotal').textContent=t;
-  document.getElementById('statRate').textContent=t>0?`${Math.round((h/t)*100)}%`:'0%';
+  
+  const preds=allPreds[currentUser]||{};
+  let hits=0,total=0;
+  
+  MATCHES.forEach(m=>{
+    if(m.status==='finished'&&m.result&&preds[m.id]){
+      total++;
+      if(preds[m.id].home==m.result.home&&preds[m.id].away==m.result.away){
+        hits++;
+      }
+    }
+  });
+  
+  const hitsEl=document.getElementById('statHits');
+  const totalEl=document.getElementById('statTotal');
+  const rateEl=document.getElementById('statRate');
+  
+  if(hitsEl)hitsEl.textContent=hits;
+  if(totalEl)totalEl.textContent=total;
+  if(rateEl)rateEl.textContent=total>0?`${Math.round((hits/total)*100)}%`:'0%';
 }
+
 function renderProfile(){
-  if(currentUser){document.getElementById('userPanel').classList.remove('hidden');document.getElementById('guestMsg').classList.add('hidden');updateUserStats();}
-  else{document.getElementById('userPanel').classList.add('hidden');document.getElementById('guestMsg').classList.remove('hidden');}
+  const panel=document.getElementById('userPanel');
+  const guest=document.getElementById('guestMsg');
+  
+  if(!panel||!guest)return;
+  
+  if(currentUser){
+    panel.classList.remove('hidden');
+    guest.classList.add('hidden');
+    updateUserStats();
+  }else{
+    panel.classList.add('hidden');
+    guest.classList.remove('hidden');
+  }
 }
 
 // ===== ADMIN =====
-function resetData(){if(confirm('⚠️ ¿Borrar TODAS las predicciones?')){localStorage.removeItem('laliga_preds');allPreds={Win:{},Santi:{},Qwen:{}};alert('✅ Borrado');location.reload();}}
+function resetData(){
+  if(confirm('⚠️ ¿Estás SEGURO de borrar TODAS las predicciones de todos los usuarios?\n\nEsta acción NO se puede deshacer.')){
+    localStorage.removeItem('laliga_preds');
+    allPreds={Win:{},Santi:{},Qwen:{}};
+    alert('✅ Datos borrados correctamente');
+    location.reload();
+  }
+}
 
-// ===== INIT =====
+// ===== INICIALIZACIÓN =====
 window.onload=function(){
+  console.log('=== App Iniciada ===');
+  console.log('localStorage:',localStorage);
+  
+  // Cargar datos guardados
+  try{
+    const saved=localStorage.getItem('laliga_preds');
+    if(saved){
+      allPreds=JSON.parse(saved);
+      console.log('Predicciones cargadas:',allPreds);
+    }
+    
+    // Restaurar sesión si existe
+    const savedUser=localStorage.getItem('laliga_current_user');
+    const savedRole=localStorage.getItem('laliga_current_role');
+    if(savedUser&&savedRole){
+      console.log('Restaurando sesión:',savedUser,savedRole);
+      login(savedUser,savedRole);
+    }
+  }catch(e){
+    console.error('Error cargando datos:',e);
+  }
+  
+  // Setup H2H
   initH2H();
-  const s=localStorage.getItem('laliga_preds');if(s)allPreds=JSON.parse(s);
-  renderMatches();renderStats('table',document.querySelector('.stats-tabs button'));
-  document.getElementById('passInput')?.addEventListener('keypress',e=>{if(e.key==='Enter')verify()});
+  
+  // Render inicial
+  renderMatches();
+  renderStats('table',document.querySelector('.stats-tabs button.active'));
+  
+  // Enter en password
+  const passInput=document.getElementById('passInput');
+  if(passInput){
+    passInput.addEventListener('keypress',function(e){
+      if(e.key==='Enter')verify();
+    });
+  }
+  
+  console.log('=== App Lista ===');
 };
-document.addEventListener('wheel',e=>{if(e.target.type==='number')e.target.blur()},{passive:true});
-</script>
 
-</body>
-</html>
+// Prevenir scroll en inputs numéricos
+document.addEventListener('wheel',function(e){
+  if(e.target.type==='number')e.target.blur();
+},{passive:true});
+</script>
