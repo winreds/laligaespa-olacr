@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaLiga Predictor 25/26</title>
+    <style>
+        :root {
+            --primary: #ee233c; /* Rojo LaLiga */
+            --dark: #1a1a1a;
+            --darker: #121212;
+            --light: #f0f0f0;
+            --accent: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            margin: 0;
+            padding-bottom: 70px; /* Espacio para menú inferior */
+        }
+
+        /* Header */
+        header {
+            background-color: var(--darker);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 1rem; color: #888; margin-top: 5px; }
+
+        /* Contenedores de Vistas */
+        .view { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .view.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Tarjetas de Partidos */
+        .match-card {
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .teams { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; font-weight: bold; }
+        .vs { color: var(--primary); font-size: 0.8rem; }
+
+        .prediction-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 40px;
+            padding: 5px;
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        button.save-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Tablas */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: var(--primary); }
+        tr:nth-child(even) { background-color: #222; }
+
+        /* Login */
+        .login-container {
+            max-width: 300px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        .user-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+        }
+        .user-btn:hover { background: #444; }
+        .admin-badge { float: right; background: var(--primary); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+
+        /* H2H */
+        .h2h-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        select { flex: 1; padding: 10px; background: #333; color: white; border: none; border-radius: 5px; }
+
+        /* Navegación Inferior */
+        nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: var(--darker);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #333;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        nav button.active { color: var(--primary); }
+        nav button span { font-size: 1.2rem; margin-bottom: 2px; }
+
+        /* Utilidades */
+        .stat-highlight { color: var(--accent); font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 id="app-title">LaLiga Predictor</h1>
+    <h2 id="user-display">Invitado</h2>
+</header>
+
+<!-- VISTA: PREDICCIONES -->
+<div id="view-predictions" class="view active">
+    <h3>Próximos Partidos (Jornada 10)</h3>
+    <div id="matches-container">
+        <!-- Los partidos se generan con JS -->
+    </div>
+</div>
+
+<!-- VISTA: ESTADÍSTICAS -->
+<div id="view-stats" class="view">
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <button onclick="renderStats('table')" class="save-btn" style="flex:1">Tabla</button>
+        <button onclick="renderStats('scorers')" class="save-btn" style="flex:1">Goleadores</button>
+        <button onclick="renderStats('assists')" class="save-btn" style="flex:1">Asistencias</button>
+    </div>
+    <div id="stats-content"></div>
+</div>
+
+<!-- VISTA: HISTÓRICO / H2H -->
+<div id="view-history" class="view">
+    <h3>Enfrentamientos Directos (H2H)</h3>
+    <div class="h2h-selector">
+        <select id="team-a"></select>
+        <span style="align-self: center;">vs</span>
+        <select id="team-b"></select>
+    </div>
+    <button onclick="calculateH2H()" class="save-btn" style="width: 100%">Ver Historial</button>
+    <div id="h2h-result" style="margin-top: 20px;"></div>
+    
+    <h3 style="margin-top: 40px;">Estadísticas Globales (Desde 2022)</h3>
+    <p style="color:#888; font-size: 0.8rem;">Datos simulados basados en rendimiento histórico.</p>
+    <div id="global-stats"></div>
+</div>
+
+<!-- VISTA: USUARIOS -->
+<div id="view-users" class="view">
+    <div id="login-screen" class="login-container">
+        <h3>Selecciona Usuario</h3>
+        <button class="user-btn" onclick="login('Win')">
+            Win <span class="admin-badge">ADMIN</span>
+        </button>
+        <button class="user-btn" onclick="login('Santi')">
+            Santi <span class="admin-badge">ADMIN</span>
+        </button>
+        <button class="user-btn" onclick="login('Qwen')">
+            Qwen (Usuario)
+        </button>
+    </div>
+    
+    <div id="user-panel" class="hidden">
+        <h3>Panel de Usuario</h3>
+        <div id="user-stats-box" style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            <p>Predicciones acertadas: <span id="user-accuracy" class="stat-highlight">0</span></p>
+            <p>Total partidos: <span id="user-total">0</span></p>
+        </div>
+        
+        <div id="admin-controls" class="hidden">
+            <h4>Controles de Administrador</h4>
+            <button onclick="resetData()" style="background: #c0392b; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%;">Borrar Base de Datos</button>
+        </div>
+
+        <button onclick="logout()" style="margin-top: 20px; background: transparent; border: 1px solid #555; color: #888; padding: 10px; width: 100%; border-radius: 5px;">Cerrar Sesión</button>
+    </div>
+</div>
+
+<!-- NAVEGACIÓN -->
+<nav>
+    <button onclick="switchView('view-predictions', this)" class="active">
+        <span>⚽</span> Predecir
+    </button>
+    <button onclick="switchView('view-stats', this)">
+        <span>📊</span> Stats
+    </button>
+    <button onclick="switchView('view-history', this)">
+        <span>📜</span> Histórico
+    </button>
+    <button onclick="switchView('view-users', this)">
+        <span>👤</span> Perfil
+    </button>
+</nav>
+
+<script>
+    // --- DATOS SIMULADOS (BASE DE DATOS LOCAL) ---
+    const TEAMS = [
+        "Real Madrid", "FC Barcelona", "Atlético", "Sevilla", "Real Sociedad", 
+        "Betis", "Villarreal", "Athletic", "Valencia", "Osasuna", 
+        "Girona", "Mallorca", "Getafe", "Rayo", "Celta", "Las Palmas", "Alavés", "Espanyol", "Leganés", "Valladolid"
+    ];
+
+    // Generador de partidos simulados para la temporada 25/26
+    const MATCHES = [
+        { id: 1, home: "Real Madrid", away: "FC Barcelona", date: "26/10/2025" },
+        { id: 2, home: "Atlético", away: "Sevilla", date: "26/10/2025" },
+        { id: 3, home: "Real Sociedad", away: "Betis", date: "27/10/2025" },
+        { id: 4, home: "Villarreal", away: "Athletic", date: "27/10/2025" },
+        { id: 5, home: "Valencia", away: "Osasuna", date: "28/10/2025" }
+    ];
+
+    // Datos estáticos de clasificación (Simulación 25/26)
+    const LEAGUE_TABLE = [
+        { pos: 1, team: "Real Madrid", pts: 28, gf: 25, gc: 8 },
+        { pos: 2, team: "FC Barcelona", pts: 27, gf: 29, gc: 10 },
+        { pos: 3, team: "Atlético", pts: 24, gf: 18, gc: 9 },
+        { pos: 4, team: "Athletic", pts: 20, gf: 15, gc: 10 },
+        { pos: 5, team: "Real Sociedad", pts: 18, gf: 14, gc: 11 },
+        { pos: 6, team: "Villarreal", pts: 17, gf: 16, gc: 14 },
+        { pos: 7, team: "Betis", pts: 16, gf: 12, gc: 12 },
+        { pos: 8, team: "Sevilla", pts: 15, gf: 11, gc: 13 },
+        { pos: 9, team: "Osasuna", pts: 14, gf: 10, gc: 12 },
+        { pos: 10, team: "Valencia", pts: 12, gf: 9, gc: 15 }
+    ];
+
+    const TOP_SCORERS = [
+        { player: "Lamine Yamal", team: "FC Barcelona", goals: 12 },
+        { player: "Mbappé", team: "Real Madrid", goals: 11 },
+        { player: "Griezmann", team: "Atlético", goals: 9 },
+        { player: "Williams", team: "Athletic", goals: 8 },
+        { player: "Sørloth", team: "Atlético", goals: 7 }
+    ];
+
+    const TOP_ASSISTS = [
+        { player: "Pedri", team: "FC Barcelona", assists: 8 },
+        { player: "Vinicius Jr", team: "Real Madrid", assists: 7 },
+        { player: "Oyarzabal", team: "Real Sociedad", assists: 6 },
+        { player: "Rodri", team: "Atlético", assists: 5 },
+        { player: "Baena", team: "Villarreal", assists: 5 }
+    ];
+
+    // --- ESTADO DE LA APP ---
+    let currentUser = null;
+    let predictions = JSON.parse(localStorage.getItem('predictions')) || {};
+
+    // --- FUNCIONES DE NAVEGACIÓN ---
+    function switchView(viewId, btn) {
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        
+        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+    }
+
+    // --- LÓGICA DE USUARIOS ---
+    function login(username) {
+        currentUser = username;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('user-panel').classList.remove('hidden');
+        document.getElementById('user-display').innerText = `Hola, ${username}`;
+        
+        // Cargar estadísticas de usuario
+        const userStats = JSON.parse(localStorage.getItem(`stats_${username}`)) || { hits: 0, total: 0 };
+        document.getElementById('user-accuracy').innerText = userStats.hits;
+        document.getElementById('user-total').innerText = userStats.total;
+
+        // Admin controls
+        if (username === 'Win' || username === 'Santi') {
+            document.getElementById('admin-controls').classList.remove('hidden');
+        } else {
+            document.getElementById('admin-controls').classList.add('hidden');
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('user-panel').classList.add('hidden');
+        document.getElementById('user-display').innerText = "Invitado";
+    }
+
+    function resetData() {
+        if(confirm("¿Seguro que quieres borrar todas las predicciones?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // --- LÓGICA DE PREDICCIONES ---
+    function renderMatches() {
+        const container = document.getElementById('matches-container');
+        container.innerHTML = '';
+
+        MATCHES.forEach(match => {
+            const savedPrediction = predictions[match.id] || { home: '', away: '' };
+            
+            const html = `
+                <div class="match-card">
+                    <div class="teams">
+                        <span>${match.home}</span>
+                        <span class="vs">vs</span>
+                        <span>${match.away}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">${match.date}</div>
+                    <div class="prediction-inputs">
+                        <input type="number" id="home-${match.id}" value="${savedPrediction.home}" min="0" max="20">
+                        <span>-</span>
+                        <input type="number" id="away-${match.id}" value="${savedPrediction.away}" min="0" max="20">
+                    </div>
+                    <button class="save-btn" onclick="savePrediction(${match.id})">Guardar</button>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    function savePrediction(matchId) {
+        if (!currentUser) {
+            alert("Debes iniciar sesión para predecir");
+            switchView('view-users', document.querySelectorAll('nav button')[3]);
+            return;
+        }
+
+        const home = document.getElementById(`home-${matchId}`).value;
+        const away = document.getElementById(`away-${matchId}`).value;
+
+        if (home === '' || away === '') {
+            alert("Introduce ambos marcadores");
+            return;
+        }
+
+        predictions[matchId] = { home, away };
+        localStorage.setItem('predictions', JSON.stringify(predictions));
+        
+        // Simular actualización de estadísticas para el usuario
+        let userStats = JSON.parse(localStorage.getItem(`stats_${currentUser}`)) || { hits: 0, total: 0 };
+        userStats.total++;
+        // Simulamos un acierto aleatorio para la demo
+        if(Math.random() > 0.5) userStats.hits++;
+        
+        localStorage.setItem(`stats_${currentUser}`, JSON.stringify(userStats));
+        document.getElementById('user-accuracy').innerText = userStats.hits;
+        document.getElementById('user-total').innerText = userStats.total;
+
+        alert("Predicción guardada");
+    }
+
+    // --- LÓGICA DE ESTADÍSTICAS ---
+    function renderStats(type) {
+        const container = document.getElementById('stats-content');
+        let html = '';
+
+        if (type === 'table') {
+            html = `<table>
+                <thead><tr><th>Pos</th><th>Equipo</th><th>Pts</th><th>DG</th></tr></thead>
+                <tbody>`;
+            LEAGUE_TABLE.forEach(row => {
+                html += `<tr>
+                    <td>${row.pos}</td>
+                    <td>${row.team}</td>
+                    <td><strong>${row.pts}</strong></td>
+                    <td>${row.gf - row.gc}</td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+        } else if (type === 'scorers') {
+            html = `<table>
+                <thead><tr><th>Jugador</th><th>Equipo</th><th>Goles</th></tr></thead>
+                <tbody>`;
+            TOP_SCORERS.forEach(row => {
+                html += `<tr><td>${row.player}</td><td>${row.team}</td><td class="stat-highlight">${row.goals}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+        } else if (type === 'assists') {
+            html = `<table>
+                <thead><tr><th>Jugador</th><th>Equipo</th><th>Asistencias</th></tr></thead>
+                <tbody>`;
+            TOP_ASSISTS.forEach(row => {
+                html += `<tr><td>${row.player}</td><td>${row.team}</td><td class="stat-highlight">${row.assists}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // --- LÓGICA H2H Y HISTÓRICO ---
+    function initSelectors() {
+        const selA = document.getElementById('team-a');
+        const selB = document.getElementById('team-b');
+        
+        TEAMS.forEach(team => {
+            selA.innerHTML += `<option value="${team}">${team}</option>`;
+            selB.innerHTML += `<option value="${team}">${team}</option>`;
+        });
+        // Seleccionar equipos distintos por defecto
+        selB.selectedIndex = 1;
+    }
+
+    function calculateH2H() {
+        const teamA = document.getElementById('team-a').value;
+        const teamB = document.getElementById('team-b').value;
+        const resultDiv = document.getElementById('h2h-result');
+
+        if (teamA === teamB) {
+            resultDiv.innerHTML = "<p style='color:red'>Selecciona dos equipos diferentes</p>";
+            return;
+        }
+
+        // Generación de datos históricos simulados (2022-2025)
+        let winsA = 0;
+        let winsB = 0;
+        let draws = 0;
+        let historyHTML = '<table><thead><tr><th>Fecha</th><th>Local</th><th>Res</th><th>Visitante</th></tr></thead><tbody>';
+
+        // Simular 5 partidos históricos
+        for(let i=1; i<=5; i++) {
+            const year = 2022 + i;
+            const scoreA = Math.floor(Math.random() * 4);
+            const scoreB = Math.floor(Math.random() * 3);
+            
+            let res = `${scoreA}-${scoreB}`;
+            if(scoreA > scoreB) winsA++;
+            else if(scoreB > scoreA) winsB++;
+            else draws++;
+
+            // Alternar localía
+            const isHomeA = i % 2 !== 0;
+            const local = isHomeA ? teamA : teamB;
+            const visit = isHomeA ? teamB : teamA;
+            const sLocal = isHomeA ? scoreA : scoreB;
+            const sVisit = isHomeA ? scoreB : scoreA;
+
+            historyHTML += `<tr>
+                <td>15/05/${year}</td>
+                <td>${local}</td>
+                <td style="text-align:center; font-weight:bold">${sLocal}-${sVisit}</td>
+                <td>${visit}</td>
+            </tr>`;
+        }
+        historyHTML += '</tbody></table>';
+
+        resultDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-around; margin-bottom:20px; background:#222; padding:10px; border-radius:8px;">
+                <div style="text-align:center"><strong>${teamA}</strong><br><span style="color:var(--accent)">${winsA} V</span></div>
+                <div style="text-align:center"><strong>Empates</strong><br>${draws}</div>
+                <div style="text-align:center"><strong>${teamB}</strong><br><span style="color:var(--accent)">${winsB} V</span></div>
+            </div>
+            ${historyHTML}
+        `;
+    }
+
+    // --- INICIALIZACIÓN ---
+    window.onload = function() {
+        renderMatches();
+        renderStats('table');
+        initSelectors();
+        
+        // Cargar stats globales simuladas
+        document.getElementById('global-stats').innerHTML = `
+            <p>Partidos jugados (22-25): <strong>2,840</strong></p>
+            <p>Goles totales: <strong>7,350</strong></p>
+            <p>Media de goles: <strong>2.58</strong></p>
+        `;
+    };
+
+</script>
+
+</body>
+</html>
